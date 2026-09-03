@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Exceptions Report — Jeffrey Bilbrey Region</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<!-- Perf (2026-09-02): non-render-blocking font load (media="print" + onload
+     swap) so a slow/hung fonts.googleapis.com can never hold up first paint. -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'DM Mono','Courier New',monospace;background:#0f0f13;min-height:100vh;color:#e2e8f0;}
@@ -75,7 +77,14 @@
   .empty-title{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;color:#1e2030;margin-bottom:12px;}
   .empty-sub{font-size:13px;letter-spacing:1px;}
 </style>
-<script src="data/exceptions-data.js"></script>
+<!-- Perf (2026-09-02): exceptions-data.js is regenerated daily, but GitHub
+     Pages serves it with max-age=600 and this tag had no cache-buster, so a
+     rep could see 10-minute-old exceptions after an upload. The ?t= stamp is
+     the same buster the other dashboards put on their data fetches. It has to
+     be written by script because the URL is dynamic; document.write keeps the
+     load synchronous, so window.RAW_DATA is set before the inline script
+     below runs, exactly as before. (16.6 KB gzipped on the wire.) -->
+<script>document.write('<script src="data/exceptions-data.js?t=' + Date.now() + '"><\/script>');</script>
 </head>
 <body>
 
