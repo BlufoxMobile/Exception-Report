@@ -5,77 +5,206 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Exceptions Report — Jeffrey Bilbrey Region</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <!-- Perf (2026-09-02): non-render-blocking font load (media="print" + onload
      swap) so a slow/hung fonts.googleapis.com can never hold up first paint. -->
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Bodoni+Moda:ital,wght@0,700;1,700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'DM Mono','Courier New',monospace;background:#0f0f13;min-height:100vh;color:#e2e8f0;}
-  ::-webkit-scrollbar{width:6px;height:6px;}
-  ::-webkit-scrollbar-track{background:#1a1a22;}
-  ::-webkit-scrollbar-thumb{background:#334155;border-radius:3px;}
-  .header{background:#0f0f13;border-bottom:1px solid #1e2030;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;}
-  .header-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;}
-  .header-sub{font-size:11px;color:#475569;margin-top:2px;letter-spacing:2px;text-transform:uppercase;}
-  .tab-btn{cursor:pointer;padding:8px 20px;border-radius:8px;font-family:inherit;font-size:13px;transition:all 0.2s;border:1px solid #1e2030;background:#16161f;color:#64748b;}
-  .tab-btn.active{background:#6366f1;color:white;border-color:#6366f1;}
-  .tab-btn:hover:not(.active){color:#94a3b8;border-color:#334155;}
-  .layout{display:flex;height:calc(100vh - 73px);}
-  .sidebar{width:280px;border-right:1px solid #1e2030;padding:16px 14px;overflow-y:auto;flex-shrink:0;}
-  .main{flex:1;overflow-y:auto;padding:24px 28px;}
-  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
-  .stat-card{background:#16161f;border:1px solid #1e2030;border-radius:10px;padding:16px 20px;}
-  .stat-num{font-size:22px;font-weight:500;}
-  .stat-label{font-size:10px;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
-  .mini-chart{background:#16161f;border:1px solid #1e2030;border-radius:12px;padding:12px 14px;margin-bottom:14px;}
-  .mini-chart-title{font-size:10px;color:#475569;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
-  .bar-row{margin-bottom:8px;}
-  .bar-row-labels{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;}
-  .bar-track{height:6px;border-radius:3px;background:#1e2030;overflow:hidden;}
-  .bar-fill{height:100%;border-radius:3px;transition:width 0.4s ease;}
-  .search-wrap{position:relative;margin-bottom:12px;}
-  .search-input{width:100%;background:#16161f;border:1px solid #1e2030;border-radius:8px;padding:8px 12px 8px 32px;font-family:inherit;font-size:12px;color:#cbd5e1;outline:none;transition:border-color 0.2s;}
-  .search-input::placeholder{color:#334155;}
-  .search-input:focus{border-color:#6366f1;}
-  .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#475569;font-size:13px;pointer-events:none;}
-  .list-label{font-size:10px;color:#475569;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
-  .list-item{cursor:pointer;padding:10px 14px;border-radius:8px;border:1px solid #1e2030;transition:all 0.15s;margin-bottom:6px;background:#16161f;}
-  .list-item:hover{border-color:#334155;background:#1a1a24;}
-  .list-item.active{border-color:#6366f1;background:#1e1e30;}
-  .list-item-name{font-size:12px;font-weight:500;color:#cbd5e1;}
-  .list-item.active .list-item-name{color:#a5b4fc;}
-  .list-item-sub{font-size:10px;color:#475569;margin-top:2px;}
-  .detail-header{margin-bottom:24px;}
-  .detail-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#fff;}
-  .detail-sub{font-size:12px;color:#475569;margin-top:4px;}
-  .badge-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;}
-  .issue-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid;}
-  .issue-card{border-radius:10px;border:1px solid;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:filter 0.15s;}
-  .issue-card:hover{filter:brightness(1.05);}
-  .issue-card-header{display:flex;align-items:center;justify-content:space-between;}
-  .issue-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0;}
-  .issue-name{font-size:13px;font-weight:500;}
-  .issue-meta{font-size:11px;color:#64748b;margin-top:1px;}
-  .issue-toggle{color:#94a3b8;font-size:16px;}
-  .issue-body{margin-top:14px;padding-top:14px;}
-  .issue-desc{border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.6;color:#475569;margin-bottom:14px;background:rgba(0,0,0,0.08);}
-  .section-label{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
-  .tag{display:inline-block;background:#1e2030;border:1px solid #2d3148;color:#94a3b8;border-radius:6px;padding:2px 8px;font-size:10px;margin:2px;letter-spacing:0.5px;}
-  .rep-tag{display:inline-block;border-radius:6px;padding:2px 8px;font-size:11px;margin:2px;}
-  .lob-pill{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:500;margin:2px;letter-spacing:0.5px;background:#1e2030;color:#94a3b8;border:1px solid #2d3148;}
-  .acct-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px;}
-  .acct-table th{text-align:left;color:#64748b;font-weight:400;padding:4px 8px;border-bottom:1px solid #1e2030;text-transform:uppercase;letter-spacing:1px;font-size:10px;}
-  .acct-table td{padding:5px 8px;border-bottom:1px solid rgba(30,32,48,0.5);color:#cbd5e1;vertical-align:top;}
-  .acct-table tr:last-child td{border-bottom:none;}
-  .acct-table tr:hover td{background:rgba(255,255,255,0.02);}
-  .lob-hsi{background:#1e3a5f;color:#60a5fa;border-color:#1d4ed8;}
-  .lob-video{background:#3b1f5e;color:#c084fc;border-color:#7c3aed;}
-  .lob-xfm{background:#3b1a1a;color:#f87171;border-color:#dc2626;}
-  .lob-xhs{background:#1a3320;color:#4ade80;border-color:#16a34a;}
-  .lob-cdv{background:#1a2e3b;color:#38bdf8;border-color:#0284c7;}
-  .lob-other{background:#1e2030;color:#94a3b8;border-color:#334155;}
-  .empty-title{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;color:#1e2030;margin-bottom:12px;}
-  .empty-sub{font-size:13px;letter-spacing:1px;}
+/* ===== Blufox "CSG How To" design system — tokens lifted from csg-how-to.css ===== */
+:root{
+  --ink:#000;--ink-1:#07090c;--ink-2:#0d1116;--ink-3:#151b22;
+  --line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.14);
+  --text:#f2efe8;--text-2:#b9b4aa;--text-3:#7d7a74;
+  --brass:#d4a94f;--brass-2:#f0cf86;--brass-dim:rgba(212,169,79,.16);
+  --internet:#5cc8ff;--tv:#b48cff;--voice:#5be3a0;--xh:#ffb05c;--orders:#ff7eb6;--equipment:#6fe3d6;--basics:#c9c3ff;
+  --warn:#ff8a65;--ok:#5be3a0;
+  --display:'Bodoni Moda',Didot,'Times New Roman',serif;
+  --sans:'Archivo',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+  --r:4px;--gut:16px;--max:1320px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--ink);color:var(--text);font:400 17px/1.55 var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(900px 500px at 85% -10%,rgba(212,169,79,.10),transparent 60%),radial-gradient(700px 500px at -10% 110%,rgba(92,200,255,.06),transparent 60%)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--brass-2);outline-offset:2px;border-radius:2px}
+.wrap{position:relative;z-index:1;max-width:var(--max);margin:0 auto;padding:0 var(--gut)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--ink-3);border-radius:99px;box-shadow:inset 0 0 0 1px var(--line)}
+
+/* ---------- header ---------- */
+header.top{position:sticky;top:0;z-index:20;background:rgba(0,0,0,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:14px;height:64px}
+.brand{display:flex;align-items:baseline;gap:10px;white-space:nowrap;min-width:0}
+.brand b{font:700 24px/1 var(--display)}
+.brand b em{color:var(--brass-2)}
+.brand span{font:600 10px/1 var(--sans);letter-spacing:.28em;text-transform:uppercase;color:var(--text-3)}
+.bar .region{margin-left:auto;font:600 12px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--text-2);white-space:nowrap}
+
+/* ---------- hero ---------- */
+.hero{padding:44px 0 26px}
+.eyebrow{font:600 12px/1.4 var(--sans);letter-spacing:.28em;text-transform:uppercase;color:var(--brass)}
+.hero h1{font:700 clamp(42px,8vw,92px)/.98 var(--display);letter-spacing:-.015em;margin:16px 0 14px}
+.hero h1 em{background:linear-gradient(100deg,var(--brass) 0%,var(--brass-2) 40%,#fff6dc 50%,var(--brass-2) 60%,var(--brass) 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sheen 5s ease-in-out infinite;padding-right:.06em}
+@keyframes sheen{0%,100%{background-position:100% 0}50%{background-position:0 0}}
+.hero p{color:var(--text-2);font-size:19px;margin:0;max-width:60ch}
+.hair{height:1px;background:linear-gradient(90deg,transparent,var(--brass) 20%,var(--brass) 80%,transparent);opacity:.45}
+
+/* ---------- view tabs ---------- */
+.tabs{display:inline-flex;gap:4px;padding:4px;margin:26px 0 22px;border-radius:999px;background:var(--ink-1);box-shadow:inset 0 0 0 1px var(--line-2)}
+.tab-btn{min-height:46px;padding:0 22px;border-radius:999px;font:600 15px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);transition:background .2s,color .2s,box-shadow .2s;white-space:nowrap}
+.tab-btn:hover:not(.active){color:var(--text);box-shadow:inset 0 0 0 1px var(--line-2)}
+.tab-btn.active{background:var(--brass);color:#120d03}
+
+/* ---------- KPI cards ---------- */
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) minmax(0,2fr);gap:14px;margin-bottom:22px}
+.card{position:relative;border-radius:6px;background:linear-gradient(160deg,var(--ink-2),var(--ink-1));box-shadow:inset 0 0 0 1px var(--line);overflow:hidden;--mx:50%;--my:50%;--c:var(--brass)}
+.card::after{content:"";position:absolute;right:-60px;top:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,var(--c),transparent 70%);opacity:.18;transition:opacity .3s;pointer-events:none}
+.card::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .25s;background:radial-gradient(260px circle at var(--mx) var(--my),color-mix(in srgb,var(--c) 22%,transparent),transparent 60%)}
+.card:hover::before{opacity:1}
+.card:hover::after{opacity:.3}
+.stat-card{padding:22px 24px;display:flex;flex-direction:column;justify-content:space-between;gap:18px;min-height:150px}
+.stat-card .top{display:flex;align-items:center;gap:12px}
+.stat-card .ico{width:44px;height:44px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--c)}
+.stat-card .ico svg{width:22px;height:22px}
+.stat-num{font:700 clamp(52px,7vw,92px)/.9 var(--display);color:var(--c);letter-spacing:-.01em;font-variant-numeric:lining-nums}
+.stat-label{font:700 13px/1.3 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--c)}
+.mini-chart{padding:20px 24px}
+.mini-chart-title{font:700 13px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--brass);margin-bottom:14px}
+.bar-row{margin-bottom:10px}
+.bar-row:last-child{margin-bottom:0}
+.bar-row-labels{display:flex;justify-content:space-between;gap:12px;font-size:15px;line-height:1.3;margin-bottom:5px}
+.bar-row-labels .bl{color:var(--c);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-row-labels .bn{color:var(--text-2);font-variant-numeric:tabular-nums;font-weight:600}
+.bar-track{height:6px;border-radius:99px;background:var(--ink-3);overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,color-mix(in srgb,var(--c) 55%,transparent),var(--c));box-shadow:0 0 12px color-mix(in srgb,var(--c) 45%,transparent);transition:width .6s cubic-bezier(.16,1,.3,1)}
+
+/* ---------- workspace ---------- */
+.layout{display:grid;grid-template-columns:360px minmax(0,1fr);gap:22px;align-items:start;padding-bottom:80px}
+.sidebar{position:sticky;top:80px;display:flex;flex-direction:column;max-height:calc(100vh - 96px);padding:18px 16px 12px;border-radius:6px;background:var(--ink-1);box-shadow:inset 0 0 0 1px var(--line)}
+.list-label{font:700 13px/1.2 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--brass);margin:2px 2px 12px}
+.search-wrap{position:relative;margin-bottom:12px}
+.search-input{width:100%;height:50px;padding:0 18px 0 46px;background:var(--ink-2);border:0;box-shadow:inset 0 0 0 1px var(--line-2);border-radius:999px;color:var(--text);font:500 17px var(--sans);transition:box-shadow .2s}
+.search-input::placeholder{color:var(--text-3)}
+.search-input:focus{outline:none;box-shadow:inset 0 0 0 1px var(--brass)}
+.search-icon{position:absolute;left:16px;top:50%;width:18px;height:18px;transform:translateY(-50%);stroke:var(--text-3);pointer-events:none}
+#list-container{overflow-y:auto;overscroll-behavior:contain;margin:0 -6px;padding:2px 6px 6px;min-height:0}
+.list-item{position:relative;cursor:pointer;min-height:56px;padding:12px 16px;border-radius:6px;margin-bottom:6px;background:var(--ink-2);box-shadow:inset 0 0 0 1px var(--line);transition:background .15s,box-shadow .15s,transform .15s}
+.list-item:hover{background:var(--ink-3);box-shadow:inset 0 0 0 1px var(--line-2)}
+.list-item.active{background:color-mix(in srgb,var(--brass) 10%,var(--ink-2));box-shadow:inset 0 0 0 1px var(--brass),inset 3px 0 0 var(--brass)}
+.list-item-name{font:600 17px/1.3 var(--sans);color:var(--text)}
+.list-item.active .list-item-name{color:var(--brass-2)}
+.list-item-sub{font-size:14px;line-height:1.4;color:var(--text-2);margin-top:3px}
+.cnt{color:var(--warn);font-weight:600}
+.list-empty{color:var(--text-2);font-size:15px;padding:18px 12px;text-align:center}
+
+.main{min-width:0}
+.empty-state{position:relative;padding:72px 28px;border-radius:6px;text-align:center;background:linear-gradient(160deg,var(--ink-2),var(--ink-1));box-shadow:inset 0 0 0 1px var(--line);overflow:hidden}
+.empty-state::after{content:"";position:absolute;right:-80px;top:-80px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,var(--brass),transparent 70%);opacity:.14;pointer-events:none}
+.empty-title{font:700 clamp(30px,4vw,44px)/1.05 var(--display);color:var(--text);margin-bottom:10px;text-transform:capitalize}
+.empty-sub{font-size:17px;color:var(--text-2)}
+.empty-state .arrow{margin:0 auto 18px;width:44px;height:44px;border-radius:10px;display:grid;place-items:center;background:var(--brass-dim);color:var(--brass-2)}
+
+.detail-header{padding:4px 0 18px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+.detail-title{font:700 clamp(34px,4.6vw,54px)/1.04 var(--display);color:var(--text);letter-spacing:-.01em;overflow-wrap:anywhere}
+.detail-sub{font-size:17px;color:var(--text-2);margin-top:10px}
+.badge-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.issue-badge{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:6px 14px;border-radius:999px;font:600 14px/1.2 var(--sans);color:var(--c);background:color-mix(in srgb,var(--c) 10%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 38%,transparent)}
+.issue-badge strong{font-weight:700;color:var(--text)}
+
+.issue-card{padding:18px 20px;margin-bottom:12px;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.issue-card:hover{transform:translateY(-2px);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 55%,transparent)}
+.issue-card.open{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 45%,transparent)}
+.issue-card.open:hover{transform:none}
+.issue-card-header{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.issue-card-header .lead{display:flex;align-items:center;gap:16px;min-width:0}
+.issue-icon{flex:none;min-width:56px;height:56px;padding:0 8px;border-radius:10px;display:grid;place-items:center;font:700 26px/1 var(--display);color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 22%,transparent)}
+.issue-name{font:700 20px/1.25 var(--sans);color:var(--c);overflow-wrap:anywhere}
+.issue-meta{font-size:15px;line-height:1.45;color:var(--text-2);margin-top:3px}
+.issue-toggle{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--c);box-shadow:inset 0 0 0 1px var(--line-2);transition:transform .25s,background .2s}
+.issue-toggle svg{width:18px;height:18px}
+.issue-card.open .issue-toggle{transform:rotate(180deg);background:color-mix(in srgb,var(--c) 14%,transparent)}
+.issue-body{position:relative;z-index:1;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);cursor:default}
+.issue-desc{margin-bottom:18px;padding:14px 16px;border-radius:4px;font-size:17px;line-height:1.6;color:var(--text);background:var(--ink-2);box-shadow:inset 3px 0 0 var(--c,var(--brass))}
+.issue-desc .lbl{display:block;font:700 13px var(--sans);letter-spacing:.18em;text-transform:uppercase;margin-bottom:4px;color:var(--c,var(--brass))}
+.desc-lead{position:relative;margin-bottom:24px;border-radius:6px}
+.section-label{font:700 13px/1.3 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--c,var(--brass));margin-bottom:8px}
+.reps-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 12px}
+.reps-h h2{font:700 28px/1.1 var(--display)}
+.reps-h span{color:var(--text-2);font-size:15px}
+.rep-tag{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:5px 12px;margin:0 6px 6px 0;border-radius:999px;font:500 15px/1.2 var(--sans);color:var(--text);background:color-mix(in srgb,var(--c) 8%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 30%,transparent)}
+.rep-tag strong{color:var(--c);font-weight:700}
+.sub-block{margin-top:18px}
+
+/* ---------- tables (CSG .tbl) ---------- */
+.tbl{margin-top:4px;border-radius:6px;overflow:auto;box-shadow:inset 0 0 0 1px var(--line);background:var(--ink-1)}
+.tbl table{width:100%;border-collapse:collapse;font-size:16px;line-height:1.5}
+.tbl th{position:sticky;top:0;z-index:1;text-align:left;font:700 13px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--c,var(--brass));background:var(--ink-2);padding:12px 14px;border-bottom:1px solid var(--line-2);white-space:nowrap}
+.tbl td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--text)}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+.tbl tbody tr:hover td{background:rgba(255,255,255,.035)}
+.tbl .acct{color:var(--c);font-weight:700;white-space:nowrap;width:1%}
+.tbl .dt{font:500 14px/1.5 var(--mono);color:var(--text-2);white-space:nowrap;width:1%}
+.tbl .who{color:var(--text)}
+.tbl .unk{color:var(--text-2);font-style:italic}
+.lob-pill{display:inline-block;margin:2px 4px 2px 0;padding:4px 9px;border-radius:3px;font:700 12px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--lc,var(--text-2));background:color-mix(in srgb,var(--lc,#b9b4aa) 14%,transparent)}
+.lob-hsi{--lc:var(--internet)}
+.lob-video{--lc:var(--tv)}
+.lob-xfm{--lc:var(--orders)}
+.lob-xhs{--lc:var(--xh)}
+.lob-cdv{--lc:var(--voice)}
+.lob-other{--lc:var(--text-2)}
+
+/* ---------- motion ---------- */
+.enter .rise,.rise.go{animation:rise .6s cubic-bezier(.16,1,.3,1) backwards;animation-delay:calc(min(var(--i,0),14) * 45ms)}
+@keyframes rise{from{opacity:0;transform:translateY(22px) scale(.98)}}
+
+/* ---------- responsive ---------- */
+@media(max-width:1100px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpis .mini-chart{grid-column:1/-1}
+}
+@media(max-width:980px){
+  .layout{grid-template-columns:300px minmax(0,1fr);gap:16px}
+  .issue-card{padding:16px}
+}
+@media(max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{position:relative;top:0;max-height:none}
+  #list-container{max-height:min(52vh,460px)}
+  .main{scroll-margin-top:76px}
+}
+@media(max-width:640px){
+  .bar .region{display:none}
+  .brand b{font-size:21px}
+  .hero{padding:30px 0 18px}
+  .hero p{font-size:17px}
+  .tabs{display:grid;grid-template-columns:1fr 1fr;width:100%;border-radius:12px;margin:20px 0 16px}
+  .tab-btn{border-radius:9px;padding:0 10px;font-size:14px}
+  .kpis{gap:10px}
+  .stat-card{padding:16px;min-height:0}
+  .stat-card .ico{width:38px;height:38px}
+  .stat-num{font-size:48px}
+  .stat-card .top{gap:10px;align-items:flex-start;flex-direction:column}
+  .stat-label{font-size:12px}
+  .mini-chart{padding:16px}
+  .issue-card-header .lead{gap:12px}
+  .issue-icon{min-width:48px;height:48px;font-size:22px}
+  .issue-name{font-size:18px}
+  .empty-state{padding:44px 20px}
+  .tbl{box-shadow:none;overflow:visible;max-height:none;background:none}
+  .tbl thead{display:none}
+  .tbl table,.tbl tbody,.tbl tr,.tbl td{display:block;width:100%}
+  .tbl tr{margin-bottom:10px;border-radius:6px;background:var(--ink-2);box-shadow:inset 0 0 0 1px var(--line);padding:6px 0}
+  .tbl td{border:0;padding:6px 14px;width:auto!important}
+  .tbl td::before{content:attr(data-h);display:block;font:600 11px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--c,var(--brass))}
+  .tbl tbody tr:nth-child(even) td,.tbl tbody tr:hover td{background:none}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 <!-- Perf (2026-09-02): exceptions-data.js is regenerated daily, but GitHub
      Pages serves it with max-age=600 and this tag had no cache-buster, so a
@@ -88,48 +217,59 @@
 </head>
 <body>
 
-<div class="header">
-  <div>
-    <div class="header-title">EXCEPTIONS REPORT</div>
-    <div class="header-sub">Commission Loss Analysis · Jeffrey Bilbrey Region</div>
+<header class="top">
+  <div class="wrap bar">
+    <div class="brand"><b>Exceptions <em>Report</em></b><span>Blufox Mobile</span></div>
+    <div class="region">Jeffrey Bilbrey Region</div>
   </div>
-  <div style="display:flex;gap:8px;">
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">BLUFOX MOBILE · EXCEPTION REPORT</div>
+    <h1>Exceptions <em>Report</em></h1>
+    <p>Commission Loss Analysis · Jeffrey Bilbrey Region</p>
+  </section>
+  <div class="hair"></div>
+
+  <nav class="tabs" aria-label="Report view">
     <button class="tab-btn active" id="btn-rep" onclick="switchView('rep')">By Rep</button>
     <button class="tab-btn" id="btn-store" onclick="switchView('store')">By Store</button>
     <button class="tab-btn" id="btn-exception" onclick="switchView('exception')">By Exception</button>
     <button class="tab-btn" id="btn-cancel" onclick="switchView('cancel')">Cancellations</button>
-  </div>
-</div>
+  </nav>
 
-<div class="layout">
-  <div class="sidebar" id="sidebar">
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-num" style="color:#f97316;" id="total-count">0</div>
-        <div class="stat-label">Total Exceptions</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color:#6366f1;" id="rep-count">0</div>
-        <div class="stat-label" id="count-label">Reps Affected</div>
-      </div>
+  <section class="kpis">
+    <div class="card stat-card rise go" style="--c:var(--warn);--i:0">
+      <div class="top"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg></div><div class="stat-label" id="total-label">Total Exceptions</div></div>
+      <div class="stat-num" id="total-count">0</div>
     </div>
-    <div class="mini-chart">
+    <div class="card stat-card rise go" style="--c:var(--internet);--i:1">
+      <div class="top"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="stat-label" id="count-label">Reps Affected</div></div>
+      <div class="stat-num" id="rep-count">0</div>
+    </div>
+    <div class="card mini-chart rise go" style="--i:2">
       <div class="mini-chart-title">Top Issues</div>
       <div id="top-issues-chart"></div>
     </div>
-    <div class="list-label" id="list-label">Reps</div>
-    <div class="search-wrap">
-      <span class="search-icon">🔍</span>
-      <input class="search-input" id="search-input" type="text" placeholder="Search by name..." oninput="onSearch()"/>
-    </div>
-    <div id="list-container"></div>
-  </div>
+  </section>
 
-  <div class="main" id="main-content">
-    <div class="empty-state">
-      <div class="empty-title" id="empty-title">SELECT A REP</div>
-      <div class="empty-sub">Choose from the list to view detailed exceptions</div>
-    </div>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="list-label" id="list-label">Reps</div>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input class="search-input" id="search-input" type="text" placeholder="Search by name..." oninput="onSearch()" aria-label="Search by name"/>
+      </div>
+      <div id="list-container"></div>
+    </aside>
+
+    <main class="main" id="main-content">
+      <div class="empty-state">
+        <div class="empty-title" id="empty-title">SELECT A REP</div>
+        <div class="empty-sub">Choose from the list to view detailed exceptions</div>
+      </div>
+    </main>
   </div>
 </div>
 
@@ -138,16 +278,16 @@ const RAW_DATA = (window.RAW_DATA || []);
 
 const CANCEL_DATA = (window.CANCEL_DATA || []);
 const ISSUE_INFO = {
-  "Cancel Rekey": { color:"#ef4444", bg:"#fef2f2", border:"#fecaca", description:"The customer already had service at this address. The service was cancelled at the current address. The accounts below are from the new service accounts that were setup at the same address for the same customer. Cancelling a service then restarting a service at an address is not commissionable, and is considered a cancel/rekey. These can be a serious offense, and we need to refrain from practicing this at all costs." },
-  "Fails 3-Day Rule": { color:"#f97316", bg:"#fff7ed", border:"#fed7aa", description:"This address had active service within the last 3 days that matched with the new customer's data. To get paid on core services, new accounts must be completely new customers. Restarting services under a spouse or other family member's name are not commissionable." },
-  "Insufficient Revenue Lift": { color:"#eab308", bg:"#fefce8", border:"#fef08a", description:"When making changes to a customer's account in CSG, the customer's bill must increase by more than a dollar for the sale to be commissionable. If the bill decreases by a dollar, this sale would be deemed as an insufficient revenue lift. These transactions should not be put into RQ4." },
-  "More than 60 days to install": { color:"#8b5cf6", bg:"#faf5ff", border:"#ddd6fe", description:"The customer never scheduled or completed service installation within the first 60 days after the order was placed. Installs outside this window are not eligible for commission." },
-  "No Camera Sold With Order": { color:"#06b6d4", bg:"#ecfeff", border:"#a5f3fc", description:"A smart home security system was sold to the customer, but no camera was included in the order. All smart home orders must include at least one camera to be eligible for payment." },
-  "XFM - Same Day Disconnect": { color:"#ec4899", bg:"#fdf2f8", border:"#fbcfe8", description:"A mobile (XFM) line was set up for the customer, but they cancelled that same day. Same-day cancellations do not qualify for commission." },
-  "Risk Assurance": { color:"#64748b", bg:"#f8fafc", border:"#cbd5e1", description:"This order failed internal risk assessment verification in CSG. When performing a Risk Assessment in CSG, you must follow the message from the Risk Assessment. If CSG deems that the customer should leave a $100 deposit, the customer would need to leave the $100 to be deemed commissionable. To avoid errors with Risk Assessment, setup services in XOE on your iPad. XOE will take the $25 prepayment for every customer, and will avoid this error entirely." },
-  "Customer had service within 120 Days": { color:"#10b981", bg:"#ecfdf5", border:"#a7f3d0", description:"The customer already had active or recently cancelled service within the past 120 days. Orders for customers with recent service history are not eligible for commission." },
-  "Customer had FLEX service within 120 Days": { color:"#10b981", bg:"#ecfdf5", border:"#a7f3d0", description:"The customer had a FLEX service arrangement within the past 120 days, making this order ineligible for commission." },
-  "Customer disconnected more than twice": { color:"#f43f5e", bg:"#fff1f2", border:"#fecdd3", description:"The customer has disconnected service more than twice, making this transaction ineligible for commission. Repeated disconnections indicate a pattern that does not qualify under the compensation plan." },
+  "Cancel Rekey": { color:"#ff8a65", description:"The customer already had service at this address. The service was cancelled at the current address. The accounts below are from the new service accounts that were setup at the same address for the same customer. Cancelling a service then restarting a service at an address is not commissionable, and is considered a cancel/rekey. These can be a serious offense, and we need to refrain from practicing this at all costs." },
+  "Fails 3-Day Rule": { color:"#ffb05c", description:"This address had active service within the last 3 days that matched with the new customer's data. To get paid on core services, new accounts must be completely new customers. Restarting services under a spouse or other family member's name are not commissionable." },
+  "Insufficient Revenue Lift": { color:"#f0cf86", description:"When making changes to a customer's account in CSG, the customer's bill must increase by more than a dollar for the sale to be commissionable. If the bill decreases by a dollar, this sale would be deemed as an insufficient revenue lift. These transactions should not be put into RQ4." },
+  "More than 60 days to install": { color:"#b48cff", description:"The customer never scheduled or completed service installation within the first 60 days after the order was placed. Installs outside this window are not eligible for commission." },
+  "No Camera Sold With Order": { color:"#5cc8ff", description:"A smart home security system was sold to the customer, but no camera was included in the order. All smart home orders must include at least one camera to be eligible for payment." },
+  "XFM - Same Day Disconnect": { color:"#ff7eb6", description:"A mobile (XFM) line was set up for the customer, but they cancelled that same day. Same-day cancellations do not qualify for commission." },
+  "Risk Assurance": { color:"#b9b4aa", description:"This order failed internal risk assessment verification in CSG. When performing a Risk Assessment in CSG, you must follow the message from the Risk Assessment. If CSG deems that the customer should leave a $100 deposit, the customer would need to leave the $100 to be deemed commissionable. To avoid errors with Risk Assessment, setup services in XOE on your iPad. XOE will take the $25 prepayment for every customer, and will avoid this error entirely." },
+  "Customer had service within 120 Days": { color:"#5be3a0", description:"The customer already had active or recently cancelled service within the past 120 days. Orders for customers with recent service history are not eligible for commission." },
+  "Customer had FLEX service within 120 Days": { color:"#5be3a0", description:"The customer had a FLEX service arrangement within the past 120 days, making this order ineligible for commission." },
+  "Customer disconnected more than twice": { color:"#ff8a65", description:"The customer has disconnected service more than twice, making this transaction ineligible for commission. Repeated disconnections indicate a pattern that does not qualify under the compensation plan." },
 };
 
 
@@ -160,7 +300,7 @@ function acctTableHTML(acctMap, color, border) {
     return parse(a[0]) - parse(b[0]);
   });
   return `
-    <table class="acct-table">
+    <div class="tbl" style="--c:${color}"><table>
       <thead><tr><th>#</th><th>Order Date</th><th>Lines of Business</th></tr></thead>
       <tbody>${entries.map(([key, lobs], i) => {
         const date = key.includes('|') ? key.split('|')[1] : key;
@@ -168,9 +308,9 @@ function acctTableHTML(acctMap, color, border) {
           const cls = l==="HSI"?"lob-hsi":l==="Video"?"lob-video":l==="XFM"?"lob-xfm":l==="XHS"?"lob-xhs":l==="CDV"?"lob-cdv":"lob-other";
           return '<span class="lob-pill '+cls+'">'+l+'</span>';
         }).join("");
-        return '<tr><td style="color:'+color+';font-weight:500;width:36px">Acct '+(i+1)+'</td><td style="color:#94a3b8;white-space:nowrap;width:72px">'+date+'</td><td>'+lobHTML+'</td></tr>';
+        return '<tr><td class="acct" data-h="#">Acct '+(i+1)+'</td><td class="dt" data-h="Order Date">'+date+'</td><td data-h="Lines of Business">'+lobHTML+'</td></tr>';
       }).join("")}</tbody>
-    </table>`;
+    </table></div>`;
 }
 
 function acctDateRange(acctMap) {
@@ -184,9 +324,7 @@ function acctDateRange(acctMap) {
 function getIssueKey(row) {
   return row.type === "Risk Assurance" ? "Risk Assurance" : (row.subType || row.type);
 }
-function issueColor(k) { return (ISSUE_INFO[k]||{color:"#64748b"}).color; }
-function issueBg(k) { return (ISSUE_INFO[k]||{bg:"#f8fafc"}).bg; }
-function issueBorder(k) { return (ISSUE_INFO[k]||{border:"#cbd5e1"}).border; }
+function issueColor(k) { return (ISSUE_INFO[k]||{color:"#b9b4aa"}).color; }
 
 // ── State ────────────────────────────────────────────────────────────────────
 let currentView = "rep";
@@ -259,25 +397,23 @@ const exceptionStats = buildExceptionStats();
 
 // ── Cancel reason colors ──────────────────────────────────────────────────────
 const CANCEL_REASON_INFO = {
-  "CUST REFUSED":    { color:"#ef4444", bg:"#fef2f2", border:"#fecaca", desc:"The customer refused the installation or service at the door." },
-  "OLD PENDG CNCL":  { color:"#64748b", bg:"#f8fafc", border:"#cbd5e1", desc:"An old order that was left in a pending state and was subsequently cancelled by the system." },
-  "CANCEL @CHECKIN": { color:"#f97316", bg:"#fff7ed", border:"#fed7aa", desc:"The order was cancelled at the time of the technician check-in, typically because the customer was not home or refused service on arrival." },
-  "OFFICE CORRECTN": { color:"#8b5cf6", bg:"#faf5ff", border:"#ddd6fe", desc:"An office correction was made to cancel this order, usually due to a data entry or processing error." },
-  "CUSTOMER CHOICE": { color:"#06b6d4", bg:"#ecfeff", border:"#a5f3fc", desc:"The customer voluntarily chose to cancel their order after it was placed." },
-  "COMPETITION":     { color:"#eab308", bg:"#fefce8", border:"#fef08a", desc:"The customer cancelled because they chose to go with a competing provider." },
-  "CREDIT DENIED":   { color:"#ec4899", bg:"#fdf2f8", border:"#fbcfe8", desc:"The customer's credit check failed and the order could not be fulfilled." },
-  "NEVER ORDERED":   { color:"#10b981", bg:"#ecfdf5", border:"#a7f3d0", desc:"The customer claims they never placed this order — possible unauthorized or mistaken order." },
-  "ORDR ENTRY ERR":  { color:"#f43f5e", bg:"#fff1f2", border:"#fecdd3", desc:"The order was cancelled due to a rep entry error — incorrect information was submitted." },
-  "WRONG ADDRESS":   { color:"#a855f7", bg:"#faf5ff", border:"#e9d5ff", desc:"The order was placed at the wrong address and had to be cancelled." },
-  "AESTHETICS PROB": { color:"#14b8a6", bg:"#f0fdfa", border:"#99f6e4", desc:"The customer cancelled due to aesthetic concerns, such as objections to equipment installation locations." },
-  "BAL OWED/DUE":    { color:"#f97316", bg:"#fff7ed", border:"#fed7aa", desc:"The customer has an outstanding balance owed, preventing the new order from being fulfilled." },
-  "CONSENT DENIED":  { color:"#ef4444", bg:"#fef2f2", border:"#fecaca", desc:"The customer denied consent for the order or service terms." },
-  "TECH CANCELED":   { color:"#64748b", bg:"#f8fafc", border:"#cbd5e1", desc:"The technician cancelled the order during the service visit." },
-  "Unknown":         { color:"#94a3b8", bg:"#f1f5f9", border:"#e2e8f0", desc:"No cancel reason was recorded for this order." },
+  "CUST REFUSED":    { color:"#ff8a65", desc:"The customer refused the installation or service at the door." },
+  "OLD PENDG CNCL":  { color:"#b9b4aa", desc:"An old order that was left in a pending state and was subsequently cancelled by the system." },
+  "CANCEL @CHECKIN": { color:"#ffb05c", desc:"The order was cancelled at the time of the technician check-in, typically because the customer was not home or refused service on arrival." },
+  "OFFICE CORRECTN": { color:"#b48cff", desc:"An office correction was made to cancel this order, usually due to a data entry or processing error." },
+  "CUSTOMER CHOICE": { color:"#5cc8ff", desc:"The customer voluntarily chose to cancel their order after it was placed." },
+  "COMPETITION":     { color:"#f0cf86", desc:"The customer cancelled because they chose to go with a competing provider." },
+  "CREDIT DENIED":   { color:"#ff7eb6", desc:"The customer's credit check failed and the order could not be fulfilled." },
+  "NEVER ORDERED":   { color:"#5be3a0", desc:"The customer claims they never placed this order — possible unauthorized or mistaken order." },
+  "ORDR ENTRY ERR":  { color:"#ff8a65", desc:"The order was cancelled due to a rep entry error — incorrect information was submitted." },
+  "WRONG ADDRESS":   { color:"#c9c3ff", desc:"The order was placed at the wrong address and had to be cancelled." },
+  "AESTHETICS PROB": { color:"#6fe3d6", desc:"The customer cancelled due to aesthetic concerns, such as objections to equipment installation locations." },
+  "BAL OWED/DUE":    { color:"#ffb05c", desc:"The customer has an outstanding balance owed, preventing the new order from being fulfilled." },
+  "CONSENT DENIED":  { color:"#ff8a65", desc:"The customer denied consent for the order or service terms." },
+  "TECH CANCELED":   { color:"#b9b4aa", desc:"The technician cancelled the order during the service visit." },
+  "Unknown":         { color:"#a19c93", desc:"No cancel reason was recorded for this order." },
 };
-function cancelColor(r)  { return (CANCEL_REASON_INFO[r]||{color:"#94a3b8"}).color; }
-function cancelBg(r)     { return (CANCEL_REASON_INFO[r]||{bg:"#f1f5f9"}).bg; }
-function cancelBorder(r) { return (CANCEL_REASON_INFO[r]||{border:"#e2e8f0"}).border; }
+function cancelColor(r)  { return (CANCEL_REASON_INFO[r]||{color:"#b9b4aa"}).color; }
 function cancelDesc(r)   { return (CANCEL_REASON_INFO[r]||{desc:"No description available."}).desc; }
 
 // ── Build cancel stats (by store) ─────────────────────────────────────────────
@@ -318,6 +454,9 @@ const topIssues = getTopIssues();
 const filteredCount = RAW_DATA.filter(d => d.rep && d.rep.trim()).length;
 
 // ── Render ────────────────────────────────────────────────────────────────────
+const CHEVRON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+let animateMain = false;
+
 function renderSidebar() {
   document.getElementById("total-count").textContent = currentView === "cancel" ? CANCEL_DATA.length : filteredCount;
   if (currentView === "rep") {
@@ -341,22 +480,22 @@ function renderSidebar() {
     const top5 = Object.entries(reasonCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
     const max = top5[0][1];
     document.getElementById("top-issues-chart").innerHTML = top5.map(([reason, cnt]) => `
-      <div class="bar-row">
+      <div class="bar-row" style="--c:${cancelColor(reason)}">
         <div class="bar-row-labels">
-          <span style="color:${cancelColor(reason)};max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${reason}</span>
-          <span style="color:#64748b">${cnt}</span>
+          <span class="bl">${reason}</span>
+          <span class="bn">${cnt}</span>
         </div>
-        <div class="bar-track"><div class="bar-fill" style="width:${(cnt/max)*100}%;background:${cancelColor(reason)}"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(cnt/max)*100}%"></div></div>
       </div>`).join("");
   } else {
     const max = topIssues[0][1];
     document.getElementById("top-issues-chart").innerHTML = topIssues.slice(0,5).map(([key,cnt]) => `
-      <div class="bar-row">
+      <div class="bar-row" style="--c:${issueColor(key)}">
         <div class="bar-row-labels">
-          <span style="color:${issueColor(key)};max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${key}</span>
-          <span style="color:#64748b">${cnt}</span>
+          <span class="bl">${key}</span>
+          <span class="bn">${cnt}</span>
         </div>
-        <div class="bar-track"><div class="bar-fill" style="width:${(cnt/max)*100}%;background:${issueColor(key)}"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(cnt/max)*100}%"></div></div>
       </div>`).join("");
   }
 
@@ -376,35 +515,55 @@ function renderSidebar() {
   document.getElementById("list-container").innerHTML = filtered.length
     ? filtered.map(s => {
         if (currentView === "exception") {
-          return `<div class="list-item ${s.key === selectedKey ? 'active' : ''}" onclick="selectItem('${s.key.replace(/'/g,"\\'")}')">
+          return `<div class="list-item ${s.key === selectedKey ? 'active' : ''}" role="button" tabindex="0" style="box-shadow:inset 3px 0 0 ${issueColor(s.key)}${s.key === selectedKey ? ',inset 0 0 0 1px var(--brass)' : ',inset 0 0 0 1px var(--line)'}" onclick="selectItem('${s.key.replace(/'/g,"\\'")}')">
             <div class="list-item-name" style="color:${issueColor(s.key)}">${s.label}</div>
-            <div class="list-item-sub"><span style="color:#f97316">${s.allRows.length} exceptions</span> · ${s.reps.size} reps · ${s.stores.size} stores</div>
+            <div class="list-item-sub"><span class="cnt">${s.allRows.length} exceptions</span> · ${s.reps.size} reps · ${s.stores.size} stores</div>
           </div>`;
         }
         if (currentView === "cancel") {
           const topReason = Object.entries(s.reasons).sort((a,b)=>b[1].count-a[1].count)[0];
-          return `<div class="list-item ${s.key === selectedKey ? 'active' : ''}" onclick="selectItem('${s.key.replace(/'/g,"\\'")}')">
+          return `<div class="list-item ${s.key === selectedKey ? 'active' : ''}" role="button" tabindex="0" onclick="selectItem('${s.key.replace(/'/g,"\\'")}')">
             <div class="list-item-name">${s.label}</div>
-            <div class="list-item-sub"><span style="color:#f97316">${s.allRows.length} cancellations</span>${topReason ? ` · Top: <span style="color:${cancelColor(topReason[0])}">${topReason[0]}</span>` : ''}</div>
+            <div class="list-item-sub"><span class="cnt">${s.allRows.length} cancellations</span>${topReason ? ` · Top: <span style="color:${cancelColor(topReason[0])}">${topReason[0]}</span>` : ''}</div>
           </div>`;
         }
-        return `<div class="list-item ${s.key === selectedKey ? 'active' : ''}" onclick="selectItem('${s.key.replace(/'/g,"\\'")}')">
+        return `<div class="list-item ${s.key === selectedKey ? 'active' : ''}" role="button" tabindex="0" onclick="selectItem('${s.key.replace(/'/g,"\\'")}')">
           <div class="list-item-name">${s.label}</div>
           <div class="list-item-sub">${currentView === "rep"
-            ? `${s.sub} · <span style="color:#f97316">${s.allRows.length} exceptions</span>`
-            : `<span style="color:#f97316">${s.allRows.length} exceptions</span> · ${s.reps.size} reps`
+            ? `${s.sub} · <span class="cnt">${s.allRows.length} exceptions</span>`
+            : `<span class="cnt">${s.allRows.length} exceptions</span> · ${s.reps.size} reps`
           }</div>
         </div>`;
       }).join("")
-    : `<div style="color:#475569;font-size:12px;padding:12px;text-align:center;">No results for "${searchQuery}"</div>`;
+    : `<div class="list-empty">No results for "${searchQuery}"</div>`;
+}
+
+function cardHTML(color, onclickKey, isOpen, i, iconNum, name, meta, bodyHTML) {
+  return `
+    <div class="card issue-card rise${isOpen ? ' open' : ''}" style="--c:${color};--i:${i}" role="button" tabindex="0" aria-expanded="${isOpen}" onclick="toggleIssue('${onclickKey}')">
+      <div class="issue-card-header">
+        <div class="lead">
+          <div class="issue-icon">${iconNum}</div>
+          <div style="min-width:0">
+            <div class="issue-name">${name}</div>
+            <div class="issue-meta">${meta}</div>
+          </div>
+        </div>
+        <div class="issue-toggle" aria-hidden="true">${CHEVRON}</div>
+      </div>
+      ${bodyHTML}
+    </div>`;
 }
 
 function renderMain() {
   const sel = getSelected();
   const main = document.getElementById("main-content");
+  main.classList.toggle("enter", animateMain);
+  animateMain = false;
   if (!sel) {
     const emptyLabel = currentView === "rep" ? "SELECT A REP" : currentView === "store" ? "SELECT A STORE" : currentView === "exception" ? "SELECT AN EXCEPTION" : "SELECT A STORE";
-    main.innerHTML = `<div class="empty-state">
+    main.innerHTML = `<div class="empty-state rise">
+      <div class="arrow"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>
       <div class="empty-title">${emptyLabel}</div>
       <div class="empty-sub">Choose from the list to view detailed ${currentView === "cancel" ? "cancellations" : "exceptions"}</div>
     </div>`;
@@ -415,11 +574,11 @@ function renderMain() {
   if (currentView === "cancel") {
     const reasonEntries = Object.entries(sel.reasons).sort((a,b) => b[1].count - a[1].count);
     const badgeHTML = reasonEntries.map(([r, d]) => `
-      <div class="issue-badge" style="color:${cancelColor(r)};background:${cancelBg(r)};border-color:${cancelBorder(r)}">
+      <div class="issue-badge" style="--c:${cancelColor(r)}">
         ${r} <strong>×${d.count}</strong>
       </div>`).join("");
 
-    const cardsHTML = reasonEntries.map(([reason, d]) => {
+    const cardsHTML = reasonEntries.map(([reason, d], i) => {
       const isOpen = expandedIssue === reason;
       // Group by rep within this reason
       const repMap = {};
@@ -431,51 +590,40 @@ function renderMain() {
       const repEntries = Object.entries(repMap).sort((a,b) => b[1].length - a[1].length);
 
       const bodyHTML = isOpen ? `
-        <div class="issue-body" style="border-top:1px solid ${cancelBorder(reason)}">
-          <div class="issue-desc"><strong style="color:${cancelColor(reason)}">What this means:</strong> ${cancelDesc(reason)}</div>
-          <div class="section-label" style="margin-bottom:8px">Orders (${d.rows.length})</div>
-          <table class="acct-table">
+        <div class="issue-body">
+          <div class="issue-desc"><span class="lbl">What this means:</span> ${cancelDesc(reason)}</div>
+          <div class="section-label">Orders (${d.rows.length})</div>
+          <div class="tbl"><table>
             <thead><tr><th>Rep</th><th>Order Date</th><th>Cancel Date</th></tr></thead>
             <tbody>${d.rows.map(row => `
               <tr>
-                <td style="color:#94a3b8">${row.rep || '<span style="color:#475569;font-style:italic">Unknown</span>'}</td>
-                <td style="color:#64748b;font-size:10px">${row.orderDate}</td>
-                <td style="color:#64748b;font-size:10px">${row.cancelDate}</td>
+                <td class="who" data-h="Rep">${row.rep || '<span class="unk">Unknown</span>'}</td>
+                <td class="dt" data-h="Order Date">${row.orderDate}</td>
+                <td class="dt" data-h="Cancel Date">${row.cancelDate}</td>
               </tr>`).join("")}
             </tbody>
-          </table>
-          ${repEntries.length > 1 ? `<div style="margin-top:14px">
-            <div class="section-label" style="margin-bottom:6px">By Rep</div>
+          </table></div>
+          ${repEntries.length > 1 ? `<div class="sub-block">
+            <div class="section-label">By Rep</div>
             <div>${repEntries.map(([rep, rows]) => `
-              <span class="rep-tag" style="background:rgba(0,0,0,0.08);border:1px solid ${cancelBorder(reason)};color:${cancelColor(reason)}">
+              <span class="rep-tag">
                 ${rep} <strong>×${rows.length}</strong>
               </span>`).join("")}
             </div>
           </div>` : ''}
         </div>` : "";
 
-      return `
-        <div class="issue-card" style="background:${cancelBg(reason)};border-color:${cancelBorder(reason)}" onclick="toggleIssue('${reason.replace(/'/g,"\\'")}')">
-          <div class="issue-card-header">
-            <div style="display:flex;align-items:center;gap:12px">
-              <div class="issue-icon" style="background:${cancelColor(reason)}">${d.count}</div>
-              <div>
-                <div class="issue-name" style="color:${cancelColor(reason)}">${reason}</div>
-                <div class="issue-meta">${d.rows.length} order${d.rows.length!==1?"s":""} · ${new Set(d.rows.map(r=>r.rep).filter(Boolean)).size} reps</div>
-              </div>
-            </div>
-            <div class="issue-toggle">${isOpen ? "▲" : "▼"}</div>
-          </div>
-          ${bodyHTML}
-        </div>`;
+      return cardHTML(cancelColor(reason), reason.replace(/'/g,"\\'"), isOpen, i, d.count, reason,
+        `${d.rows.length} order${d.rows.length!==1?"s":""} · ${new Set(d.rows.map(r=>r.rep).filter(Boolean)).size} reps`, bodyHTML);
     }).join("");
 
     main.innerHTML = `
-      <div class="detail-header">
+      <div class="detail-header rise">
+        <div class="eyebrow">Cancellations · Store</div>
         <div class="detail-title">${sel.label}</div>
         <div class="detail-sub">${sel.allRows.length} cancelled orders · ${reasonEntries.length} reason codes · ${sel.reps.size} reps</div>
       </div>
-      <div class="badge-row">${badgeHTML}</div>
+      <div class="badge-row rise" style="--i:1">${badgeHTML}</div>
       ${cardsHTML}`;
     return;
   }
@@ -486,38 +634,28 @@ function renderMain() {
     const info = ISSUE_INFO[issueKey] || {};
     const repEntries = Object.entries(sel.issues).sort((a,b) => b[1].count - a[1].count);
 
-    const repCardsHTML = repEntries.map(([rep, d]) => {
+    const repCardsHTML = repEntries.map(([rep, d], i) => {
       const repIssueKey = rep + '||' + issueKey;
       const isOpen = expandedIssue === repIssueKey;
-      return `
-        <div class="issue-card" style="background:${issueBg(issueKey)};border-color:${issueBorder(issueKey)}" onclick="toggleIssue('${repIssueKey.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">
-          <div class="issue-card-header">
-            <div style="display:flex;align-items:center;gap:12px">
-              <div class="issue-icon" style="background:${issueColor(issueKey)}">${d.count}</div>
-              <div>
-                <div class="issue-name" style="color:${issueColor(issueKey)}">${rep}</div>
-                <div class="issue-meta">${d.store} · ${Object.keys(d.acctMap).length} account${Object.keys(d.acctMap).length!==1?"s":""} · ${d.count} line${d.count!==1?"s":""} · ${acctDateRange(d.acctMap)}</div>
-              </div>
-            </div>
-            <div class="issue-toggle">${isOpen ? "▲" : "▼"}</div>
-          </div>
-          ${isOpen ? `
-          <div class="issue-body" style="border-top:1px solid ${issueBorder(issueKey)}">
-            <div class="section-label" style="margin-bottom:6px">Accounts & Lines of Business (${Object.keys(d.acctMap).length})</div>
-            ${acctTableHTML(d.acctMap, issueColor(issueKey), issueBorder(issueKey))}
-          </div>` : ""}
-        </div>`;
+      const bodyHTML = isOpen ? `
+          <div class="issue-body">
+            <div class="section-label">Accounts & Lines of Business (${Object.keys(d.acctMap).length})</div>
+            ${acctTableHTML(d.acctMap, issueColor(issueKey))}
+          </div>` : "";
+      return cardHTML(issueColor(issueKey), repIssueKey.replace(/'/g,"\\'").replace(/"/g,'&quot;'), isOpen, i, d.count, rep,
+        `${d.store} · ${Object.keys(d.acctMap).length} account${Object.keys(d.acctMap).length!==1?"s":""} · ${d.count} line${d.count!==1?"s":""} · ${acctDateRange(d.acctMap)}`, bodyHTML);
     }).join("");
 
     main.innerHTML = `
-      <div class="detail-header">
+      <div class="detail-header rise" style="--c:${issueColor(issueKey)}">
+        <div class="eyebrow" style="color:var(--c)">Exception Type</div>
         <div class="detail-title" style="color:${issueColor(issueKey)}">${sel.label}</div>
         <div class="detail-sub">${sel.allRows.length} total exception lines · ${sel.reps.size} reps affected · ${sel.stores.size} stores</div>
       </div>
-      <div class="issue-desc" style="background:${issueBg(issueKey)};border:1px solid ${issueBorder(issueKey)};border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:12px;line-height:1.7;color:#475569">
-        <strong style="color:${issueColor(issueKey)}">What this means:</strong> ${info.description || "See report for details."}
+      <div class="issue-desc desc-lead rise" style="--c:${issueColor(issueKey)};--i:1">
+        <span class="lbl">What this means:</span> ${info.description || "See report for details."}
       </div>
-      <div class="list-label" style="margin-bottom:10px">Reps Affected (${repEntries.length})</div>
+      <div class="list-label" style="margin:0 0 12px">Reps Affected (${repEntries.length})</div>
       ${repCardsHTML}`;
     return;
   }
@@ -526,7 +664,7 @@ function renderMain() {
   const issueEntries = Object.entries(sel.issues).sort((a,b) => b[1].count - a[1].count);
 
   const badgeHTML = issueEntries.map(([k, d]) => `
-    <div class="issue-badge" style="color:${issueColor(k)};background:${issueBg(k)};border-color:${issueBorder(k)}">
+    <div class="issue-badge" style="--c:${issueColor(k)}">
       ${k} <strong>×${d.count}</strong>
     </div>`).join("");
 
@@ -534,7 +672,7 @@ function renderMain() {
     ? `Store: ${sel.sub} · ${sel.allRows.length} total exception lines · ${issueEntries.length} issue types`
     : `${sel.allRows.length} total exception lines · ${sel.reps.size} reps · ${issueEntries.length} issue types`;
 
-  const cardsHTML = issueEntries.map(([k, d]) => {
+  const cardsHTML = issueEntries.map(([k, d], i) => {
     const info   = ISSUE_INFO[k] || {};
     const isOpen = expandedIssue === k;
     let repBreakdown = "";
@@ -543,10 +681,10 @@ function renderMain() {
       sel.allRows.filter(r => getIssueKey(r) === k && r.rep).forEach(r => { rb[r.rep] = (rb[r.rep]||0)+1; });
       const rbEntries = Object.entries(rb).sort((a,b) => b[1]-a[1]);
       if (rbEntries.length) {
-        repBreakdown = `<div style="margin-top:12px">
+        repBreakdown = `<div class="sub-block">
           <div class="section-label">By Rep</div>
           <div>${rbEntries.map(([rep,cnt]) => `
-            <span class="rep-tag" style="background:rgba(0,0,0,0.08);border:1px solid ${issueBorder(k)};color:${issueColor(k)}">
+            <span class="rep-tag">
               ${rep} <strong>×${cnt}</strong>
             </span>`).join("")}
           </div>
@@ -555,37 +693,26 @@ function renderMain() {
     }
 
     const bodyHTML = isOpen ? `
-      <div class="issue-body" style="border-top:1px solid ${issueBorder(k)}">
-        <div class="issue-desc"><strong style="color:${issueColor(k)}">What this means:</strong> ${info.description||"See report for details."}</div>
-        <div style="margin-bottom:10px">
-          <div class="section-label" style="margin-bottom:6px">Accounts & Lines of Business (${Object.keys(d.acctMap).length})</div>
-          ${acctTableHTML(d.acctMap, issueColor(k), issueBorder(k))}
+      <div class="issue-body">
+        <div class="issue-desc"><span class="lbl">What this means:</span> ${info.description||"See report for details."}</div>
+        <div>
+          <div class="section-label">Accounts & Lines of Business (${Object.keys(d.acctMap).length})</div>
+          ${acctTableHTML(d.acctMap, issueColor(k))}
         </div>
         ${repBreakdown}
       </div>` : "";
 
-    return `
-      <div class="issue-card" style="background:${issueBg(k)};border-color:${issueBorder(k)}" onclick="toggleIssue('${k.replace(/'/g,"\\'")}')">
-        <div class="issue-card-header">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div class="issue-icon" style="background:${issueColor(k)}">${d.count}</div>
-            <div>
-              <div class="issue-name" style="color:${issueColor(k)}">${k}</div>
-              <div class="issue-meta">${Object.keys(d.acctMap).length} account${Object.keys(d.acctMap).length!==1?"s":""} · ${d.count} line${d.count!==1?"s":""} · ${acctDateRange(d.acctMap)}</div>
-            </div>
-          </div>
-          <div class="issue-toggle">${isOpen ? "▲" : "▼"}</div>
-        </div>
-        ${bodyHTML}
-      </div>`;
+    return cardHTML(issueColor(k), k.replace(/'/g,"\\'"), isOpen, i, d.count, k,
+      `${Object.keys(d.acctMap).length} account${Object.keys(d.acctMap).length!==1?"s":""} · ${d.count} line${d.count!==1?"s":""} · ${acctDateRange(d.acctMap)}`, bodyHTML);
   }).join("");
 
   main.innerHTML = `
-    <div class="detail-header">
+    <div class="detail-header rise">
+      <div class="eyebrow">${currentView === "rep" ? "Rep" : "Store"}</div>
       <div class="detail-title">${sel.label}</div>
       <div class="detail-sub">${subLine}</div>
     </div>
-    <div class="badge-row">${badgeHTML}</div>
+    <div class="badge-row rise" style="--i:1">${badgeHTML}</div>
     ${cardsHTML}`;
 }
 
@@ -610,19 +737,40 @@ function switchView(v) {
   document.getElementById("btn-exception").classList.toggle("active", v === "exception");
   document.getElementById("btn-cancel").classList.toggle("active",    v === "cancel");
   document.getElementById("search-input").value = "";
+  animateMain = true;
   render();
 }
 
 function selectItem(key) {
   selectedKey   = key;
   expandedIssue = null;
+  animateMain = true;
+  const lc = document.getElementById("list-container"), st = lc.scrollTop;
   render();
+  lc.scrollTop = st;
+  // Single-column layout (phones / iPad portrait): bring the detail into view.
+  if (window.matchMedia("(max-width:860px)").matches) {
+    document.getElementById("main-content").scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion:reduce)").matches ? "auto" : "smooth", block: "start" });
+  }
 }
 
 function toggleIssue(key) {
   expandedIssue = expandedIssue === key ? null : key;
   renderMain();
 }
+
+// ── Presentation: pointer-follow glow + keyboard activation ───────────────────
+document.addEventListener("pointermove", e => {
+  const c = e.target.closest && e.target.closest(".card");
+  if (!c) return;
+  const r = c.getBoundingClientRect();
+  c.style.setProperty("--mx", (e.clientX - r.left) + "px");
+  c.style.setProperty("--my", (e.clientY - r.top) + "px");
+});
+document.addEventListener("keydown", e => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches(".list-item,.issue-card")) { e.preventDefault(); e.target.click(); }
+});
+
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 render();
